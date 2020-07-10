@@ -22,7 +22,9 @@ class HashTable:
 
     def __init__(self, capacity):
         # Your code here
-
+        self.capacity = capacity
+        self.data = [None] * capacity
+        self.count = 0
 
     def get_num_slots(self):
         """
@@ -55,6 +57,14 @@ class HashTable:
 
         # Your code here
 
+        fnv_prime = 1099511628211
+        offset_basis = 14695981039346656037
+        hash_value = offset_basis
+        key_utf8 = key.encode()
+        for b in key_utf8:
+            hash_value = hash_value ^ b
+            hash_value = hash_value * fnv_prime
+        return hash_value
 
     def djb2(self, key):
         """
@@ -63,6 +73,10 @@ class HashTable:
         Implement this, and/or FNV-1.
         """
         # Your code here
+        hash_value = 5381
+        for char in key:
+            hash_value = (hash_value * 33) + ord(char)
+        return hash_value
 
 
     def hash_index(self, key):
@@ -82,6 +96,20 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        index = self.hash_index(key)
+        new_entry = HashTableEntry(key, value)
+        current = self.data[index]
+
+        if self.data[index] is None:
+            self.data[index] = HashTableEntry(key, value)
+        else:
+            while current:
+                if current.key is key:
+                    current.value = value
+                    return
+                previous = current
+                current = current.next
+            previous.next = new_entry
 
 
     def delete(self, key):
@@ -93,7 +121,8 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        self.put(key, None)
+        self.count -= 1
 
     def get(self, key):
         """
@@ -104,6 +133,20 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        index = self.hash_index(key)
+
+        if self.data[index] is None:
+            return None
+
+        if self.data[index].key is key:
+            return self.data[index].value
+        else:
+            current = self.data[index]
+            while current.next is not None:
+                current = current.next
+                if current.key is key:
+                    return current.value
+            return None
 
 
     def resize(self, new_capacity):
